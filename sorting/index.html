@@ -1,0 +1,70 @@
+<!doctype html>
+
+<html>
+    <body>
+        <script src="sorter.wasm.js"></script>
+        <script>
+            const moduleInstance = new SortModule();
+
+            moduleInstance['onRuntimeInitialized'] = () => { 
+                const mergeSort = moduleInstance.cwrap('mergeSort', null, ['number', 'number']);
+                const bubbleSort = moduleInstance.cwrap('bubbleSort', null, ['number', 'number']);
+                const quickSort = moduleInstance.cwrap('quickSort', null, ['number', 'number', 'number']);
+                const nByte = 4
+                const length = 200;
+                let buffer = moduleInstance._malloc(length * nByte);
+                let buffer2 = moduleInstance._malloc(length * nByte);
+                let buffer3 = moduleInstance._malloc(length * nByte);
+                const jsArr = [];
+
+                for (let i = 0; i < length; i++) {
+                    const val = Math.ceil(Math.random() * 10000)
+                    moduleInstance.setValue(buffer + i * nByte, val  ,'i32');
+                    moduleInstance.setValue(buffer2 + i * nByte, val  ,'i32');
+                    moduleInstance.setValue(buffer3 + i * nByte, val  ,'i32');
+                    jsArr.push(val);
+                }
+                
+                console.log(`Running sorts for ${length} items`);
+
+                console.log(jsArr);
+                console.time('WASM mergeSort');
+                mergeSort(buffer, length);
+                console.timeEnd('WASM mergeSort');
+
+                console.time('JS sort');
+                jsArr.sort();
+                console.timeEnd('JS sort');
+
+                console.time('WASM quickSort');
+                quickSort(buffer3, 0, length - 1);
+                console.timeEnd('WASM quickSort');
+
+                if (length <= 20000) {
+                    console.time('WASM bubbleSort');
+                    bubbleSort(buffer2, length);
+                    console.timeEnd('WASM bubbleSort');
+                } else {
+                    console.log('wont waste time on bubble sort here...');
+                }
+
+                console.log("=======================================");
+                const resArr = [];
+                const resArr2 = [];
+                const resArr3 = [];
+                for (let i = 0; i < length; i++) {
+                    resArr.push(moduleInstance.getValue(buffer + i * nByte,'i32'));
+                    resArr2.push(moduleInstance.getValue(buffer2 + i * nByte,'i32'));
+                    resArr3.push(moduleInstance.getValue(buffer3 + i * nByte,'i32'));
+                }
+
+                console.log("mergeSort res", resArr);
+                console.log("bubbleSort res", resArr2);
+                console.log("quickSort res", resArr3);
+                moduleInstance._free(buffer);
+                moduleInstance._free(buffer2);
+                moduleInstance._free(buffer3);
+            };
+        </script>
+    </body>
+</html>
