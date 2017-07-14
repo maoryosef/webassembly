@@ -4,7 +4,7 @@
     <body>
         <script src="exported.wasm.js"></script>
         <script>
-            setTimeout(() => {
+            Module['onRuntimeInitialized'] = () => { 
                 const fillArray = Module.cwrap('fillArray', null, ['number', 'number']);
                 const nByte = 4
                 const length = 20;
@@ -23,7 +23,7 @@
                 }
                 
                 echoArray(buffer, length);
-            }, 1000); //TODO find a way to check when the module was loaded
+            };
         </script>
     </body>
 </html>
