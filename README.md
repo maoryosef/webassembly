@@ -28,9 +28,19 @@ Use the following command
 mkdir target
 emcc hello.c -s WASM=1 -O3 -o target/hello.js
 ```
+By default it will put it in a global variable named Module
+
+To make it a module and change it's name use the following command
+```
+emcc hello.c -s WASM=1 -O3 -o target/hello.js -s EXPORT_NAME="'TestModule'" -s MODULARIZE=1
+```
+You will then need to create a new instance of TestModule
 
 #### To run it simply serve the folder
 You can use
 ```
 emrun --no_browser --port 8080 .
 ```
+
+## Soures to check
+* [using AMD with WASM](https://stackoverflow.com/questions/29329240/emscripten-with-module-loaders/29332498#29332498)

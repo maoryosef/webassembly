@@ -4,22 +4,24 @@
     <body>
         <script src="exported.wasm.js"></script>
         <script>
-            Module['onRuntimeInitialized'] = () => { 
-                const fillArray = Module.cwrap('fillArray', null, ['number', 'number']);
+            const moduleInstance = new TestModule();
+
+            moduleInstance['onRuntimeInitialized'] = () => { 
+                const fillArray = moduleInstance.cwrap('fillArray', null, ['number', 'number']);
                 const nByte = 4
                 const length = 20;
-                let buffer = Module._malloc(length * nByte);
+                let buffer = moduleInstance._malloc(length * nByte);
                 fillArray(buffer, length);
                 for (let i = 0; i < length; i++) {
-                    console.log(Module.getValue(buffer + i * nByte, 'i32'));
+                    console.log(moduleInstance.getValue(buffer + i * nByte, 'i32'));
                 }
 
                 console.log("===============================================")
 
-                const echoArray = Module.cwrap('echoArray', null, ['number', 'number']);
-                buffer = Module._malloc(length * nByte);
+                const echoArray = moduleInstance.cwrap('echoArray', null, ['number', 'number']);
+                buffer = moduleInstance._malloc(length * nByte);
                 for (let i = 0; i < length; i++) {
-                    Module.setValue(buffer + i * nByte, i * 2 ,'i32');
+                    moduleInstance.setValue(buffer + i * nByte, i * 2 ,'i32');
                 }
                 
                 echoArray(buffer, length);
