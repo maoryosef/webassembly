@@ -1,0 +1,29 @@
+<!doctype html>
+
+<html>
+    <body>
+        <script src="exported.wasm.js"></script>
+        <script>
+            setTimeout(() => {
+                const fillArray = Module.cwrap('fillArray', null, ['number', 'number']);
+                const nByte = 4
+                const length = 20;
+                let buffer = Module._malloc(length * nByte);
+                fillArray(buffer, length);
+                for (let i = 0; i < length; i++) {
+                    console.log(Module.getValue(buffer + i * nByte, 'i32'));
+                }
+
+                console.log("===============================================")
+
+                const echoArray = Module.cwrap('echoArray', null, ['number', 'number']);
+                buffer = Module._malloc(length * nByte);
+                for (let i = 0; i < length; i++) {
+                    Module.setValue(buffer + i * nByte, i * 2 ,'i32');
+                }
+                
+                echoArray(buffer, length);
+            }, 1000); //TODO find a way to check when the module was loaded
+        </script>
+    </body>
+</html>

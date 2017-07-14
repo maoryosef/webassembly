@@ -26,7 +26,7 @@ Use the following command
 
 ```
 mkdir target
-emcc hello.c -s WASM=1 -o target/hello.html
+emcc hello.c -s WASM=1 -O3 -o target/hello.js
 ```
 
 #### To run it simply serve the folder
