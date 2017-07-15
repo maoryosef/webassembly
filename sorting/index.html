@@ -6,11 +6,29 @@
         <script>
             const moduleInstance = new SortModule();
 
+            function guid() {
+                function s4() {
+                    return Math.floor((1 + Math.random()) * 0x10000)
+                        .toString(16)
+                        .substring(1);
+                }
+                return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+                    s4() + '-' + s4() + s4() + s4();
+            }
+
+            function generateObj() {
+                return {
+                    id: guid(),
+                    age: Math.ceil(1 + (Math.random() * 12000))
+                }
+            }
+
             moduleInstance['onRuntimeInitialized'] = () => { 
                 const mergeSort = moduleInstance.cwrap('mergeSort', null, ['number', 'number']);
                 const bubbleSort = moduleInstance.cwrap('bubbleSort', null, ['number', 'number']);
                 const quickSort = moduleInstance.cwrap('quickSort', null, ['number', 'number', 'number']);
-                const nByte = 4
+                const quickSortWithIndex = moduleInstance.cwrap('quickSortWithIndex', null, ['number', 'number', 'number', 'number']);
+                const nByte = 4;
                 const length = 200;
                 let buffer = moduleInstance._malloc(length * nByte);
                 let buffer2 = moduleInstance._malloc(length * nByte);
@@ -61,6 +79,40 @@
                 console.log("mergeSort res", resArr);
                 console.log("bubbleSort res", resArr2);
                 console.log("quickSort res", resArr3);
+
+                console.log("===============================================");
+                const jsSortobjArr = [];
+                const origObjArr = [];
+                for (let i = 0; i < length; i++){ 
+                    const val = generateObj();
+                    jsSortobjArr.push(val);
+                    origObjArr.push(val);
+                }
+
+                console.log(jsSortobjArr.map(o => o.age));
+                console.time("WASM quicksort with convertion");
+                buffer = moduleInstance._malloc(length * nByte);
+                buffer2 = moduleInstance._malloc(length * nByte);
+                for (let i = 0; i < length; i++){ 
+                    moduleInstance.setValue(buffer + i * nByte, origObjArr[i].age, 'i32');
+                }
+                
+                quickSortWithIndex(buffer, 0, length - 1, buffer2);
+                const wasmSortRes = [];
+
+                for (let i = 0; i < length; i++) {
+                    wasmSortRes.push(origObjArr[moduleInstance.getValue(buffer2 + i * nByte,'i32')])
+                }
+
+                console.timeEnd("WASM quicksort with convertion");
+
+                console.time("JS obj sort");
+                jsSortobjArr.sort((a,b) => a.age - b.age)
+                console.timeEnd("JS obj sort");
+
+                console.log("js sort result", jsSortobjArr.map(o => o.age));
+                console.log("WASM sort result", wasmSortRes.map(o => o.age));
+
                 moduleInstance._free(buffer);
                 moduleInstance._free(buffer2);
                 moduleInstance._free(buffer3);

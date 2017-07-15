@@ -96,3 +96,41 @@ void EMSCRIPTEN_KEEPALIVE quickSort(int arr[], int low, int high) {
         quickSort(arr, pi + 1, high);
     }
 }
+
+int partitionWithIndex(int arr[], int low, int high, int indexArr[]) {
+    int pivot = arr[high];
+    int i = (low - 1);
+ 
+    for (int j = low; j <= high- 1; j++) {
+        if (arr[j] <= pivot) {
+            i++;
+            swap(&arr[i], &arr[j]); 
+            swap(&indexArr[i], &indexArr[j]); 
+        }
+    }
+
+    swap(&arr[i + 1], &arr[high]);
+    swap(&indexArr[i + 1], &indexArr[high]);
+
+    return (i + 1); 
+}
+
+void quickSortWithIndexRec(int arr[], int low, int high, int indexArr[]) {
+    if (low < high) {
+        int pi = partitionWithIndex(arr, low, high, indexArr);
+ 
+        quickSortWithIndexRec(arr, low, pi - 1, indexArr); 
+        quickSortWithIndexRec(arr, pi + 1, high, indexArr);
+    }
+}
+
+void initArray(int* a, int len) {
+    for (int i = 0; i < len; i++) {
+        a[i] = i;
+    }
+}
+
+void EMSCRIPTEN_KEEPALIVE quickSortWithIndex(int arr[], int low, int high, int indexArr[]) {
+    initArray(indexArr, high + 1);
+    quickSortWithIndexRec(arr, low, high, indexArr);
+}
